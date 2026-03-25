@@ -145,14 +145,27 @@ def main():
 
 	order = np.argsort(scores)[::-1]
 	ranked_stock_ids = [sequence_stock_ids[i] for i in order]
-
-	# 仅输出前5，权重固定 0.2
+	
+	# 仅输出前5
 	if len(ranked_stock_ids) < 5:
 		raise ValueError(f'可预测股票不足5只，当前仅有 {len(ranked_stock_ids)} 只')
 	top5 = ranked_stock_ids[:5]
+	
+	# --- 新增：Softmax 动态权重逻辑 ---
+	# 提取前 5 名股票对应的预测分数
+	top5_scores = np.array([scores[i] for i in order[:5]])
+	
+	# 设置温度系数 T。你可以随时修改这个值（建议范围 0.1 - 2.0）
+	T = 0.5 
+	
+	# 计算 Softmax，加上归一化防止数值溢出
+	exp_scores = np.exp((top5_scores - np.max(top5_scores)) / T)
+	dynamic_weights = exp_scores / np.sum(exp_scores)
+	# ------------------------------------
+
 	output_df = pd.DataFrame({
 		'stock_id': top5,
-		'weight': [0.2] * len(top5),
+		'weight': dynamic_weights,  # 使用计算出的动态权重替换原来的 [0.2]*5
 	})
 	output_df.to_csv(output_path, index=False)
 
