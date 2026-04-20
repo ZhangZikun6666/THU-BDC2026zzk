@@ -236,7 +236,7 @@ def main():
     
     # 登录baostock
     login()
-    
+    #testgit
     try:
         # 获取沪深300成分股
         hs300_df = get_hs300_stocks()
